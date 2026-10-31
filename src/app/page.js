@@ -14,37 +14,68 @@ import Tournament from "@/models/Tournament";
 // ============================================================
 function Hero() {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-grad-hero border border-white/10 p-6 md:p-12 flex flex-col-reverse md:flex-row items-center justify-between shadow-2xl min-h-[500px]">
+    <section className="relative overflow-hidden rounded-3xl bg-grad-hero border border-white/10 p-6 md:p-10 lg:p-12 flex flex-col lg:flex-row items-center justify-between shadow-2xl min-h-[500px]">
       <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_70%_30%,#10ff9f_0%,transparent_50%)] pointer-events-none" />
       
-      {/* LEFT SIDE TEXT */}
-      <div className="relative z-20 max-w-xl w-full text-center md:text-left mt-6 md:mt-0">
-        <span className="inline-flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full bg-emerald-neon/10 border border-emerald-neon/30 text-emerald-neon shadow-[0_0_15px_rgba(16,255,159,0.3)]">
-          <Radio className="w-3 h-3 animate-pulse" /> LIVE CRICKET
-        </span>
-        <h1 className="mt-4 text-4xl md:text-6xl font-black tracking-tight leading-tight">
-          Every Ball. <span className="bg-clip-text text-transparent bg-grad-batting">Every Run.</span><br />Live.
-        </h1>
-        <p className="mt-4 text-[#8892b0] text-sm md:text-lg">
-          Premium cricket league management & real-time scoring. Ball-by-ball accuracy, gorgeous live dashboards, professional analytics.
-        </p>
-        <div className="mt-6 md:mt-8 flex justify-center md:justify-start gap-4">
-          <Link href="/live" className="btn-grad bg-gradient-to-r from-emerald-neon to-cyan-400 text-black font-black shadow-[0_0_20px_rgba(16,255,159,0.4)] hover:scale-105 transition px-6 py-3 rounded-lg">
-            Watch Live
-          </Link>
-          <Link href="/scorer" className="btn-grad bg-gradient-to-r from-royal to-magenta font-black shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 transition px-6 py-3 rounded-lg text-white">
-            Open Scorer
-          </Link>
+      {/* LEFT SIDE (Desktop e bampashe thakbe) */}
+      <div className="relative z-20 w-full lg:w-[55%] flex flex-col text-center lg:text-left">
+        
+        {/* BLOCK 1: Heading (Mobile e prothome) */}
+        <div className="order-1 lg:order-1">
+          <span className="inline-flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full bg-emerald-neon/10 border border-emerald-neon/30 text-emerald-neon shadow-[0_0_15px_rgba(16,255,159,0.3)]">
+            <Radio className="w-3 h-3 animate-pulse" /> LIVE CRICKET
+          </span>
+          <h1 className="mt-4 text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1]">
+            Every Ball. <br className="hidden lg:block"/>
+            <span className="bg-clip-text text-transparent bg-grad-batting">Every Run.</span><br />Live.
+          </h1>
+        </div>
+
+        {/* BLOCK 2: Image (Mobile e majhkhane) */}
+        <div className="order-2 lg:hidden w-full flex items-center justify-center my-8">
+          <div className="relative w-[240px] h-[240px] sm:w-[280px] sm:h-[280px] flex items-center justify-center">
+            <div className="absolute w-[120%] h-[120%] border border-emerald-neon/20 rounded-full animate-radar pointer-events-none" />
+            <div className="absolute w-[100%] h-[100%] border border-dashed border-magenta/30 rounded-full animate-radar pointer-events-none" style={{ animationDirection: "reverse" }} />
+            <div className="absolute w-[80%] h-[80%] bg-emerald-neon/20 rounded-full blur-[50px] animate-pulse pointer-events-none" />
+            
+            <div className="relative z-20 w-full h-full p-3 rounded-[2.5rem] bg-white/5 backdrop-blur-md border border-white/10 animate-float-ball group hover:scale-105 transition-transform duration-500">
+              <div className="w-full h-full overflow-hidden rounded-[2rem] relative flex items-center justify-center bg-black/20">
+                <img 
+                  src="/images/hero-collage.png" 
+                  alt="Premium Cricket Gear" 
+                  className="w-full h-full object-cover object-top scale-[1.15] drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] relative z-10"
+                />
+                <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* BLOCK 3: Paragraph & Buttons (Mobile e sheshe) */}
+        <div className="order-3 lg:order-2">
+          <p className="mt-0 lg:mt-4 text-[#8892b0] text-sm md:text-base lg:text-lg max-w-xl mx-auto lg:mx-0">
+            Premium cricket league management & real-time scoring. Ball-by-ball accuracy, gorgeous live dashboards, professional analytics.
+          </p>
+          <div className="mt-6 md:mt-8 flex flex-wrap justify-center lg:justify-start gap-3 md:gap-4">
+            <Link href="/live" className="btn-grad bg-gradient-to-r from-emerald-neon to-cyan-400 text-black font-black shadow-[0_0_20px_rgba(16,255,159,0.4)] hover:scale-105 transition px-5 md:px-6 py-2.5 md:py-3 rounded-lg whitespace-nowrap text-sm md:text-base">
+              Watch Live
+            </Link>
+            <Link href="/scorer" className="btn-grad bg-gradient-to-r from-royal to-magenta font-black shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 transition px-5 md:px-6 py-2.5 md:py-3 rounded-lg text-white whitespace-nowrap text-sm md:text-base">
+              Open Scorer
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* RIGHT SIDE IMAGE */}
-      <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center">
-        <div className="absolute w-[280px] h-[280px] md:w-[450px] md:h-[450px] border border-emerald-neon/20 rounded-full animate-radar pointer-events-none" />
-        <div className="absolute w-[220px] h-[220px] md:w-[350px] md:h-[350px] border border-dashed border-magenta/30 rounded-full animate-radar pointer-events-none" style={{ animationDirection: 'reverse' }} />
-        <div className="absolute w-40 h-40 md:w-80 md:h-80 bg-emerald-neon/20 rounded-full blur-[80px] md:blur-[100px] animate-pulse pointer-events-none" />
+      {/* RIGHT SIDE IMAGE (Desktop er jonno - Mobile e hide) */}
+      <div className="relative z-10 w-[45%] hidden lg:flex items-center justify-center lg:order-2">
+        <div className="absolute w-[450px] h-[450px] border border-emerald-neon/20 rounded-full animate-radar pointer-events-none" />
+        <div className="absolute w-[350px] h-[350px] border border-dashed border-magenta/30 rounded-full animate-radar pointer-events-none" style={{ animationDirection: "reverse" }} />
+        <div className="absolute w-80 h-80 bg-emerald-neon/20 rounded-full blur-[100px] animate-pulse pointer-events-none" />
 
-        <div className="relative z-20 w-[240px] h-[240px] md:w-[350px] md:h-[350px] lg:w-[420px] lg:h-[420px] p-3 md:p-4 rounded-[2.5rem] bg-white/5 backdrop-blur-md border border-white/10 animate-float-ball group hover:scale-105 transition-transform duration-500">
+        <div className="relative z-20 w-[350px] h-[350px] xl:w-[400px] xl:h-[400px] p-4 rounded-[2.5rem] bg-white/5 backdrop-blur-md border border-white/10 animate-float-ball group hover:scale-105 transition-transform duration-500">
           <div className="w-full h-full overflow-hidden rounded-[2rem] relative flex items-center justify-center bg-black/20">
             <img 
               src="/images/hero-collage.png" 
