@@ -1,0 +1,465 @@
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Plus, Trash2, Edit, X, Upload, Image as ImageIcon, MapPin, Swords, Shield, User, AlertTriangle } from "lucide-react";
+
+export default function AdminClient() {
+  const [activeTab, setActiveTab] = useState("teams");
+  const [teams, setTeams] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [matches, setMatches] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("");
+  const [formData, setFormData] = useState({});
+  const [imageFile, setImageFile] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const getModalType = (tab) => {
+    if (tab === "matches") return "match";
+    if (tab === "players") return "player";
+    return "team";
+  };
+  
+  const getPlural = (type) => type === "match" ? "matches" : type + "s";
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      if (activeTab === "teams") {
+        const res = await fetch(`/api/admin/teams?t=${Date.now()}`, { cache: "no-store" });
+        const data = await res.json();
+        setTeams(data.teams || []);
+      } else if (activeTab === "players") {
+        const [resP, resT] = await Promise.all([fetch(`/api/admin/players?t=${Date.now()}`, { cache: "no-store" }), fetch(`/api/admin/teams?t=${Date.now()}`, { cache: "no-store" })]);
+        const dataP = await resP.json();
+        const dataT = await resT.json();
+        setPlayers(dataP.players || []);
+        setTeams(dataT.teams || []);
+      } else if (activeTab === "matches") {
+        const [resM, resT] = await Promise.all([fetch(`/api/admin/matches?t=${Date.now()}`, { cache: "no-store" }), fetch(`/api/admin/teams?t=${Date.now()}`, { cache: "no-store" })]);
+        const dataM = await resM.json();
+        const dataT = await resT.json();
+        setMatches(dataM.matches || []);
+        setTeams(dataT.teams || []);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, [activeTab]);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setLoading(true);
+    await fetch(`/api/admin/${getPlural(deleteTarget.type)}/${deleteTarget.id}`, { method: "DELETE" });
+    setDeleteTarget(null);
+    setLoading(false);
+    fetchData();
+  };
+
+  const openModal = (type, initialData = {}) => {
+    setModalType(type);
+    setImageFile(null);
+    setLogoFile(null);
+    const data = { ...initialData };
+    if (type === "player" && data.teamId && typeof data.teamId === "object") data.teamId = data.teamId._id;
+    if (type === "match") {
+      if (data.teamA && typeof data.teamA === "object") data.teamA = data.teamA._id;
+      if (data.teamB && typeof data.teamB === "object") data.teamB = data.teamB._id;
+    }
+    setFormData(data);
+    setShowModal(true);
+  };
+
+  const removeLogo = () => { setLogoFile(null); setFormData({ ...formData, logo: "" }); };
+  const removePhoto = () => { setImageFile(null); setFormData({ ...formData, photo: "" }); };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    let finalPhotoUrl = formData.photo || "";
+    let finalLogoUrl = formData.logo || "";
+
+    if (modalType === "player" && imageFile) {
+      const uploadData = new FormData();
+      uploadData.append("file", imageFile);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadData });
+      const uploadJson = await uploadRes.json();
+      if (uploadJson.url) finalPhotoUrl = uploadJson.url;
+    }
+
+    if (modalType === "team" && logoFile) {
+      const uploadData = new FormData();
+      uploadData.append("file", logoFile);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadData });
+      const uploadJson = await uploadRes.json();
+      if (uploadJson.url) finalLogoUrl = uploadJson.url;
+    }
+
+    const payload = { ...formData, photo: finalPhotoUrl, logo: finalLogoUrl };
+    const method = formData._id ? "PUT" : "POST";
+    const url = formData._id ? `/api/admin/${getPlural(modalType)}/${formData._id}` : `/api/admin/${getPlural(modalType)}`;
+    
+  const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+
+  if (!res.ok) {
+    const errData = await res.json();
+    alert("Error: " + (errData.error || "Failed to save"));
+    setLoading(false);
+    return;
+  }
+
+    setShowModal(false);
+    setLoading(false);
+    fetchData();
+  };
+
+  // ⚡ Empty State Logic Helper
+  const isEmpty = (activeTab === "teams" && teams.length === 0) || 
+                  (activeTab === "players" && players.length === 0) || 
+                  (activeTab === "matches" && matches.length === 0);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between border-b border-white/10 pb-6 mb-6">
+        <div>
+          <h1 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-neon via-cyan-400 to-magenta animate-text-gradient drop-shadow-[0_0_20px_rgba(16,255,159,0.3)]">
+            Admin Dashboard
+          </h1>
+          <p className="text-[#8892b0] text-sm mt-1">Manage your league, teams, and players seamlessly.</p>
+        </div>
+        <button onClick={() => openModal(getModalType(activeTab))} className="btn-grad bg-gradient-to-r from-emerald-neon to-cyan-400 text-black shadow-[0_0_20px_rgba(16,255,159,0.4)] hover:scale-105 transition flex items-center gap-2 font-bold">
+          <Plus className="w-5 h-5" /> Add {activeTab.slice(0, -1).toUpperCase()}
+        </button>
+      </div>
+
+      <div className="flex gap-2 border-b border-white/10 pb-2">
+        {["teams", "players", "matches"].map((tab) => (
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-lg font-bold capitalize transition ${activeTab === tab ? "bg-royal text-white shadow-glow" : "text-[#8892b0] hover:bg-white/5"}`}>
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className="panel overflow-hidden overflow-x-auto">
+        {loading && !showModal && !deleteTarget ? (
+          <div className="p-8 text-center text-[#8892b0] animate-pulse">Loading data...</div>
+        ) : isEmpty ? (
+          <div className="p-12 text-center flex flex-col items-center justify-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-white/20" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white mb-1">No {activeTab} found</h3>
+              <p className="text-[#8892b0] text-sm">You haven't added any {activeTab} yet. Click "Add {activeTab.slice(0, -1).toUpperCase()}" to get started.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5 text-[#8892b0]">
+                {activeTab === "teams" && <tr><th className="p-3 text-left">Logo</th><th className="p-3 text-left">Name</th><th className="p-3 text-left">Short</th><th className="p-3 text-left">Color</th><th className="p-3 text-right">Actions</th></tr>}
+                {activeTab === "players" && <tr><th className="p-3 text-left">Name</th><th className="p-3 text-left">Role</th><th className="p-3 text-left">Jersey</th><th className="p-3 text-left">Team</th><th className="p-3 text-right">Actions</th></tr>}
+                {activeTab === "matches" && <tr><th className="p-3 text-left">Match</th><th className="p-3 text-left">Venue</th><th className="p-3 text-left">Status</th><th className="p-3 text-right">Actions</th></tr>}
+              </thead>
+              <tbody>
+                {activeTab === "teams" && teams.map(t => (
+                  <tr key={t._id} className="border-t border-white/5 hover:bg-white/5">
+                    <td className="p-3">
+                      {t.logo ? (
+                        <img src={t.logo} className="w-10 h-10 rounded-lg object-contain bg-white/5 p-1" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg avatar-placeholder text-lg" style={{ background: t.primaryColor }}>{t.shortName?.[0]}</div>
+                      )}
+                    </td>
+                    <td className="p-3 font-bold">{t.name}</td>
+                    <td className="p-3">{t.shortName}</td>
+                    <td className="p-3"><div className="w-4 h-4 rounded-full border border-white/20" style={{ background: t.primaryColor || "#10ff9f" }} /></td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => openModal("team", t)} className="text-electric hover:text-white mr-3"><Edit className="w-4 h-4 inline" /></button>
+                      <button onClick={() => setDeleteTarget({ type: "team", id: t._id })} className="text-crimson hover:text-white"><Trash2 className="w-4 h-4 inline" /></button>
+                    </td>
+                  </tr>
+                ))}
+                
+                {activeTab === "players" && players.map(p => (
+                  <tr key={p._id} className="border-t border-white/5 hover:bg-white/5">
+                    <td className="p-3 font-bold flex items-center gap-2">
+                      {p.photo ? <img src={p.photo} className="w-6 h-6 rounded-full object-cover" /> : <div className="w-6 h-6 rounded-full avatar-placeholder text-[10px]">{p.name?.[0]}</div>}
+                      <Link href={`/players/${p._id}`} target="_blank" className="hover:text-emerald-neon hover:underline transition">{p.name}</Link>
+                    </td>
+                    <td className="p-3 capitalize text-emerald-neon">{p.role}</td>
+                    <td className="p-3">{p.jerseyNumber || "-"}</td>
+                    <td className="p-3 text-white/70">{p.teamId?.name || "Free Agent"}</td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => openModal("player", p)} className="text-electric hover:text-white mr-3"><Edit className="w-4 h-4 inline" /></button>
+                      <button onClick={() => setDeleteTarget({ type: "player", id: p._id })} className="text-crimson hover:text-white"><Trash2 className="w-4 h-4 inline" /></button>
+                    </td>
+                  </tr>
+                ))}
+
+                {activeTab === "matches" && matches.map(m => (
+                  <tr key={m._id} className="border-t border-white/5 hover:bg-white/5">
+                    <td className="p-3 font-bold">{m.teamA?.shortName} vs {m.teamB?.shortName}</td>
+                    <td className="p-3">{m.venue}</td>
+                    <td className="p-3">
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full border uppercase ${
+                        m.status === 'live' ? 'bg-crimson/20 text-crimson border-crimson/50' :
+                        m.status === 'completed' ? 'bg-emerald-neon/20 text-emerald-neon border-emerald-neon/50' :
+                        'bg-electric/20 text-electric border-electric/50'
+                      }`}>
+                        {m.status}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => openModal("match", m)} className="text-electric hover:text-white mr-3"><Edit className="w-4 h-4 inline" /></button>
+                      <button onClick={() => setDeleteTarget({ type: "match", id: m._id })} className="text-crimson hover:text-white"><Trash2 className="w-4 h-4 inline" /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* CUSTOM DELETE MODAL */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-modal-bg">
+          <div className="bg-[#0f1530] border border-crimson/30 rounded-2xl w-full max-w-sm overflow-hidden animate-modal-box shadow-[0_0_30px_rgba(225,29,72,0.2)]">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-crimson/10 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-crimson" />
+              </div>
+              <h3 className="text-xl font-black text-white mb-2 capitalize">Delete {deleteTarget.type}?</h3>
+              <p className="text-[#8892b0] text-sm mb-6">
+                Are you sure you want to permanently delete this {deleteTarget.type}? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteTarget(null)} className="flex-1 py-3 rounded-xl font-bold text-white bg-white/5 hover:bg-white/10 transition">Cancel</button>
+                <button onClick={confirmDelete} disabled={loading} className="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-crimson to-red-700 hover:scale-105 active:scale-95 transition shadow-glow">
+                  {loading ? "Deleting..." : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD / EDIT MODAL */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-modal-bg">
+          <div className="bg-[#0f1530] border border-[#1e2749] rounded-2xl w-full max-w-lg overflow-hidden animate-modal-box shadow-2xl shadow-royal/20">
+            <div className="bg-gradient-to-r from-royal to-magenta p-4 flex justify-between items-center">
+              <h3 className="text-xl font-black text-white capitalize flex items-center gap-2">
+                {modalType === 'match' ? <Swords className="w-5 h-5" /> : modalType === 'player' ? <User className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                {formData._id ? "Edit" : "Add"} {modalType}
+              </h3>
+              <button onClick={() => setShowModal(false)} className="text-white/70 hover:text-white transition"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              
+              {modalType === "team" && (
+                <>
+                  <div>
+                    <label className="text-xs text-white/50 mb-1 block">Team Name</label>
+                    <input required placeholder="e.g. Dhaka Dynamites" value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-white/50 mb-1 block">Short Name</label>
+                    <input required placeholder="e.g. DD" value={formData.shortName || ""} onChange={e => setFormData({...formData, shortName: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-white/50 mb-1 block">Team Color</label>
+                    <input type="color" value={formData.primaryColor || "#10ff9f"} onChange={e => setFormData({...formData, primaryColor: e.target.value})} className="w-full h-12 bg-[#0a0e27] border border-white/10 p-1 rounded-xl cursor-pointer" />
+                  </div>
+                  
+                  <div className="border border-white/10 rounded-xl p-4 bg-white/5">
+                    <label className="text-xs text-white/50 mb-2 block">Team Logo</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#0a0e27] border border-white/10 flex items-center justify-center shrink-0 shadow-lg p-1 relative group">
+                        {logoFile ? (
+                          <img src={URL.createObjectURL(logoFile)} className="w-full h-full object-contain" />
+                        ) : formData.logo ? (
+                          <img src={formData.logo} className="w-full h-full object-contain" />
+                        ) : (
+                          <ImageIcon className="w-6 h-6 text-white/20" />
+                        )}
+                        {(logoFile || formData.logo) && (
+                          <button type="button" onClick={removeLogo} className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                            <Trash2 className="w-5 h-5 text-crimson" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <label className="cursor-pointer block">
+                          <div className="btn-grad bg-white/10 hover:bg-white/20 py-2 text-sm flex items-center justify-center gap-2 border border-white/10 transition">
+                            <Upload className="w-4 h-4" /> {formData.logo || logoFile ? "Change Logo" : "Upload Logo"}
+                          </div>
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setLogoFile(e.target.files[0])} />
+                        </label>
+                        {(logoFile || formData.logo) && (
+                          <button type="button" onClick={removeLogo} className="w-full py-2 text-xs font-bold text-crimson bg-crimson/10 hover:bg-crimson/20 rounded-lg transition border border-crimson/20 flex items-center justify-center gap-1">
+                            <Trash2 className="w-3 h-3" /> Remove Logo
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {modalType === "player" && (
+                <>
+                  <div>
+                    <label className="text-xs text-white/50 mb-1 block">Player Name</label>
+                    <input required placeholder="Player Name" value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition" />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-white/50 mb-1 block">Role</label>
+                      <select required value={formData.role || ""} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition">
+                        <option value="">Select Role</option>
+                        <option value="batsman">Batsman</option>
+                        <option value="bowler">Bowler</option>
+                        <option value="allrounder">All-rounder</option>
+                        <option value="keeper">Wicket Keeper</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/50 mb-1 block">Jersey Number</label>
+                      <input type="number" placeholder="e.g. 10" value={formData.jerseyNumber || ""} onChange={e => setFormData({...formData, jerseyNumber: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-white/50 mb-1 block">Batting Style</label>
+                      <select value={formData.battingStyle || ""} onChange={e => setFormData({...formData, battingStyle: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition">
+                        <option value="">Select Style</option>
+                        <option value="Right-hand bat">Right-hand bat</option>
+                        <option value="Left-hand bat">Left-hand bat</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/50 mb-1 block">Bowling Style</label>
+                      <select value={formData.bowlingStyle || ""} onChange={e => setFormData({...formData, bowlingStyle: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition">
+                        <option value="">Select Style</option>
+                        <option value="Right-arm fast">Right-arm fast</option>
+                        <option value="Right-arm medium">Right-arm medium</option>
+                        <option value="Right-arm offbreak">Right-arm offbreak</option>
+                        <option value="Right-arm legbreak">Right-arm legbreak</option>
+                        <option value="Left-arm fast">Left-arm fast</option>
+                        <option value="Left-arm medium">Left-arm medium</option>
+                        <option value="Left-arm orthodox">Left-arm orthodox</option>
+                        <option value="Left-arm wrist-spin">Left-arm wrist-spin</option>
+                        <option value="None">None</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="border border-white/10 rounded-xl p-4 bg-white/5">
+                    <label className="text-xs text-white/50 mb-2 block">Player Photo</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-[#0a0e27] border border-white/10 flex items-center justify-center shrink-0 shadow-lg relative group">
+                        {imageFile ? (
+                          <img src={URL.createObjectURL(imageFile)} className="w-full h-full object-cover" />
+                        ) : formData.photo ? (
+                          <img src={formData.photo} className="w-full h-full object-cover" />
+                        ) : (
+                          <ImageIcon className="w-6 h-6 text-white/20" />
+                        )}
+                        {(imageFile || formData.photo) && (
+                          <button type="button" onClick={removePhoto} className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                            <Trash2 className="w-5 h-5 text-crimson" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <label className="cursor-pointer block">
+                          <div className="btn-grad bg-white/10 hover:bg-white/20 py-2 text-sm flex items-center justify-center gap-2 border border-white/10 transition">
+                            <Upload className="w-4 h-4" /> {formData.photo || imageFile ? "Change Image" : "Choose Image"}
+                          </div>
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files[0])} />
+                        </label>
+                        {(imageFile || formData.photo) && (
+                          <button type="button" onClick={removePhoto} className="w-full py-2 text-xs font-bold text-crimson bg-crimson/10 hover:bg-crimson/20 rounded-lg transition border border-crimson/20 flex items-center justify-center gap-1">
+                            <Trash2 className="w-3 h-3" /> Remove Photo
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-white/50 mb-1 block">Assign to Team</label>
+                    <select required value={formData.teamId || ""} onChange={e => setFormData({...formData, teamId: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition">
+                      <option value="">Select Team</option>
+                      {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {modalType === "match" && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-white/50 mb-1 block">Team A</label>
+                      <select required value={formData.teamA || ""} onChange={e => setFormData({...formData, teamA: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition">
+                        <option value="">Select Team A</option>
+                        {teams.map(t => <option key={t._id} value={t._id}>{t.name} ({t.shortName})</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/50 mb-1 block">Team B</label>
+                      <select required value={formData.teamB || ""} onChange={e => setFormData({...formData, teamB: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition">
+                        <option value="">Select Team B</option>
+                        {teams.map(t => <option key={t._id} value={t._id}>{t.name} ({t.shortName})</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-white/50 mb-1 block">Venue</label>
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                      <input required placeholder="e.g. Mirpur Stadium" value={formData.venue || ""} onChange={e => setFormData({...formData, venue: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 pl-9 rounded-xl text-white outline-none focus:border-royal transition" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-white/50 mb-1 block">Status</label>
+                      <select required value={formData.status || "upcoming"} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition">
+                        <option value="upcoming">Upcoming</option>
+                        <option value="live">Live</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/50 mb-1 block">Total Overs</label>
+                      <input type="number" required placeholder="e.g. 20" value={formData.overs || 20} onChange={e => setFormData({...formData, overs: parseInt(e.target.value)})} className="w-full bg-[#0a0e27] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-royal transition" />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <button type="submit" disabled={loading} className="w-full btn-grad bg-gradient-to-r from-emerald-neon to-cyan-400 text-black py-3 mt-6 disabled:opacity-50 font-bold shadow-[0_0_15px_rgba(16,255,159,0.4)] transition hover:shadow-[0_0_25px_rgba(16,255,159,0.6)]">
+                {loading ? "Saving..." : `Save ${modalType}`}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

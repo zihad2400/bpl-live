@@ -1,0 +1,318 @@
+@import "tailwindcss";
+
+/* ============================================================
+   1) TAILWIND v4 THEME TOKENS — creates atomic utilities
+   ============================================================ */
+@theme {
+  /* Colors → bg-midnight, text-emerald-neon, border-royal, etc. */
+  --color-midnight: #0a0e27;
+  --color-emerald-deep: #064e3b;
+  --color-emerald-neon: #10ff9f;
+  --color-electric: #00d4ff;
+  --color-royal: #7c3aed;
+  --color-crimson: #e11d48;
+  --color-gold: #fbbf24;
+  --color-magenta: #ec4899;
+
+  /* Shadows → shadow-glow, shadow-glow-blue, shadow-glow-purple */
+  --shadow-glow: 0 0 24px rgba(16, 255, 159, 0.35);
+  --shadow-glow-blue: 0 0 24px rgba(0, 212, 255, 0.35);
+  --shadow-glow-purple: 0 0 24px rgba(124, 58, 237, 0.35);
+
+  /* Animations → animate-pulse-live, animate-slide-up, animate-score-pop */
+  --animate-pulse-live: pulseLive 1.6s ease-in-out infinite;
+  --animate-slide-up: slideUp 0.5s ease-out;
+  --animate-score-pop: scorePop 0.4s ease-out;
+
+  @keyframes pulseLive {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+  @keyframes slideUp {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scorePop {
+    0% { transform: scale(1.4); color: #10ff9f; }
+    100% { transform: scale(1); color: inherit; }
+  }
+}
+
+/* ============================================================
+   2) GRADIENT BACKGROUNDS — plain CSS classes (no @apply)
+   ============================================================ */
+.bg-grad-live {
+  background-image: linear-gradient(135deg, #064e3b 0%, #0a0e27 50%, #0d1b2a 100%);
+}
+.bg-grad-batting {
+  background-image: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+}
+.bg-grad-bowling {
+  background-image: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+}
+.bg-grad-team {
+  background-image: linear-gradient(135deg, #7c3aed 0%, #0a0e27 100%);
+}
+.bg-grad-admin {
+  background-image: linear-gradient(135deg, #0a0e27 0%, #7c3aed 100%);
+}
+.bg-grad-hero {
+  background-image: linear-gradient(120deg, #0a0e27 0%, #064e3b 40%, #7c3aed 100%);
+}
+
+/* ============================================================
+   3) BASE
+   ============================================================ */
+:root {
+  --bg: #0a0e27;
+  --panel: #0f1530;
+  --border: #1e2749;
+  --text: #e6e9f5;
+  --muted: #8892b0;
+}
+
+html, body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #064e3b 0%, transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%, #7c3aed 0%, transparent 55%),
+    #0a0e27;
+  color: var(--text);
+  min-height: 100vh;
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ============================================================
+   4) COMPONENT STYLES — pure CSS, no @apply
+   ============================================================ */
+.panel {
+  background-color: rgba(15, 21, 48, 0.8);
+  border: 1px solid #1e2749;
+  border-radius: 1rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.btn-grad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 200ms ease, filter 200ms ease;
+  box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.5);
+}
+.btn-grad:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+.btn-grad:active {
+  transform: scale(0.96);
+}
+
+.live-dot {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background-color: #10ff9f;
+  box-shadow: 0 0 24px rgba(16, 255, 159, 0.55);
+  animation: pulseLive 1.6s ease-in-out infinite;
+}
+
+.stat-value {
+  font-size: 1.875rem;
+  font-weight: 900;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.ball {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  transition: all 150ms ease;
+}
+.ball:hover {
+  background: linear-gradient(135deg, #10ff9f, #00d4ff);
+  color: #0a0e27;
+  transform: scale(1.08);
+}
+
+/* ============================================================
+
+/* ============================================================
+   5) BROWSER AUTOFILL FIX (Aggressive)
+   ============================================================ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    /* 1000px inset shadow ensures it completely covers Chrome's white background */
+    -webkit-box-shadow: 0 0 0 1000px #0a0e27 inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ============================================================
+   6) PREMIUM ANIMATED TEXT GRADIENT
+   ============================================================ */
+@keyframes textGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-text-gradient {
+  background-size: 200% auto;
+  animation: textGradient 4s linear infinite;
+}
+
+/* ============================================================
+   7) PREMIUM MODAL ANIMATIONS
+   ============================================================ */
+@keyframes modalFadeIn {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(8px); }
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-modal-bg {
+  animation: modalFadeIn 0.3s ease-out forwards;
+}
+
+.animate-modal-box {
+  animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================================
+   8) DYNAMIC ANIMATED AVATAR PLACEHOLDER
+   ============================================================ */
+.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #7c3aed, #00d4ff, #10ff9f);
+  background-size: 200% 200%;
+  animation: avatarGradient 4s ease infinite;
+  color: #0a0e27;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(255,255,255,0.3);
+}
+
+@keyframes avatarGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ============================================================
+   9) PREMIUM HERO FLOATING ANIMATIONS
+   ============================================================ */
+@keyframes floatBat {
+  0%, 100% { transform: translateY(0) rotate(45deg); }
+  50% { transform: translateY(-15px) rotate(50deg); }
+}
+@keyframes floatBall {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+@keyframes rotateRadar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-float-bat {
+  animation: floatBat 4s ease-in-out infinite;
+}
+.animate-float-ball {
+  animation: floatBall 3s ease-in-out infinite;
+}
+.animate-radar {
+  animation: rotateRadar 20s linear infinite;
+}
+
+/* ============================================================
+   10) PREMIUM HERO CARD ANIMATIONS (Always Active)
+   ============================================================ */
+
+/* 1. Holographic Shimmer Sweep */
+@keyframes shimmerSweep {
+  0% { transform: translateX(-150%) skewX(-15deg); }
+  100% { transform: translateX(150%) skewX(-15deg); }
+}
+.animate-shimmer {
+  animation: shimmerSweep 4s infinite ease-in-out;
+}
+
+/* 2. Floating Particles */
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 0.8; }
+  80% { opacity: 0.8; }
+  100% { transform: translateY(-80px) scale(0); opacity: 0; }
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: floatUp 3s infinite linear;
+}
+
+/* 3. Neon Border Pulse */
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 20px rgba(16, 255, 159, 0.2), inset 0 0 10px rgba(16, 255, 159, 0.1); border-color: rgba(16, 255, 159, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.4), inset 0 0 20px rgba(124, 58, 237, 0.2); border-color: rgba(124, 58, 237, 0.6); }
+  100% { box-shadow: 0 0 20px rgba(16, 255, 159, 0.2), inset 0 0 10px rgba(16, 255, 159, 0.1); border-color: rgba(16, 255, 159, 0.3); }
+}
+.animate-neon-pulse {
+  animation: neonPulse 3s infinite alternate ease-in-out;
+}
+
+/* ============================================================
+   10) RESPONSIVE FIXES
+   ============================================================ */
+body {
+  overflow-x: hidden; /* মোবাইলে আনহরাইজন্টাল স্ক্রল বন্ধ করবে */
+}
+
+/* টেবিলগুলো মোবাইলে স্ক্রল করা যাবে */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* স্কোরিং বাটনগুলো মোবাইলে বড় এবং ক্লিকযোগ্য হবে */
+@media (max-width: 768px) {
+  .ball {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1rem;
+  }
+  
+  .panel {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+
+  /* হেডিংগুলো মোবাইলে ছোট হবে */
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.25rem !important; }
+}
