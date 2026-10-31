@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { connection } from "next/server";
 import Link from "next/link";
 import { Radio, Trophy, Users, TrendingUp, Zap, MapPin, PlayCircle } from "lucide-react";
 import { connectDB } from "@/lib/mongodb";
@@ -11,76 +10,53 @@ import Innings from "@/models/Innings";
 import Tournament from "@/models/Tournament";
 
 // ============================================================
-// STATIC HERO (PREMIUM 3D GLASSMORPHISM DESIGN)
+// STATIC HERO
 // ============================================================
 function Hero() {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-grad-hero border border-white/10 p-8 md:p-12 min-h-[500px] flex items-center shadow-2xl">
-      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_70%_30%,#10ff9f_0%,transparent_50%)]" />
+    <section className="relative overflow-hidden rounded-3xl bg-grad-hero border border-white/10 p-6 md:p-12 flex flex-col-reverse md:flex-row items-center justify-between shadow-2xl min-h-[500px]">
+      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_70%_30%,#10ff9f_0%,transparent_50%)] pointer-events-none" />
       
-      {/* ⚡ PREMIUM GRAPHICS ON THE RIGHT */}
-      <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none hidden lg:flex items-center justify-center">
-        
-        {/* Glowing Radar Rings */}
-        <div className="absolute w-[450px] h-[450px] border border-emerald-neon/20 rounded-full animate-radar" />
-        <div className="absolute w-[350px] h-[350px] border border-dashed border-magenta/30 rounded-full animate-radar" style={{ animationDirection: 'reverse' }} />
-        
-        {/* Neon Glow Blob */}
-        <div className="absolute w-80 h-80 bg-emerald-neon/20 rounded-full blur-[100px] animate-pulse" />
-
-        {/* ⚡ 3D GLASSMORPHISM CARD CONTAINING THE IMAGE */}
-        <div className="relative z-20 w-[420px] h-[420px] p-4 rounded-[2.5rem] bg-white/5 backdrop-blur-md border border-white/10 animate-float-ball group hover:scale-105 transition-transform duration-500 animate-neon-pulse">
-          
-          {/* Card Inner Glow */}
-          <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-emerald-neon/10 to-royal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          {/* ⚡ HIDING WATERMARK & ADDING 3D EFFECT */}
-          <div className="w-full h-full overflow-hidden rounded-[2rem] relative flex items-center justify-center bg-black/20">
-            
-            {/* The image is scaled up slightly to push the watermark outside the visible area */}
-            <img 
-              src="/images/hero-collage.png" 
-              alt="Premium Cricket Gear" 
-              className="w-[105%] h-[105%] object-cover object-top scale-110 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] relative z-10 transition-transform duration-700 group-hover:rotate-2 group-hover:scale-[1.15]"
-            />
-
-            {/* ⚡ 1. HOLOGRAPHIC SHIMMER OVERLAY (Always Active) */}
-            <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-            </div>
-
-            {/* ⚡ 2. FLOATING NEON PARTICLES (Always Active) */}
-            <div className="particle w-2 h-2 bg-emerald-neon" style={{ bottom: '10%', left: '20%', animationDelay: '0s' }} />
-            <div className="particle w-1.5 h-1.5 bg-magenta" style={{ bottom: '20%', right: '25%', animationDelay: '1s' }} />
-            <div className="particle w-2.5 h-2.5 bg-gold" style={{ bottom: '15%', left: '60%', animationDelay: '1.5s' }} />
-            <div className="particle w-1 h-1 bg-electric" style={{ bottom: '30%', left: '40%', animationDelay: '2s' }} />
-            <div className="particle w-2 h-2 bg-white" style={{ bottom: '5%', right: '40%', animationDelay: '0.5s' }} />
-          </div>
-
-          {/* Floating Elements inside the card */}
-          <div className="absolute -top-4 -right-4 w-16 h-16 bg-magenta rounded-full blur-xl opacity-40 animate-pulse" />
-          <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-emerald-neon rounded-full blur-xl opacity-30 animate-pulse" />
-        </div>
-      </div>
-
       {/* LEFT SIDE TEXT */}
-      <div className="relative z-10 max-w-xl">
+      <div className="relative z-20 max-w-xl w-full text-center md:text-left mt-6 md:mt-0">
         <span className="inline-flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full bg-emerald-neon/10 border border-emerald-neon/30 text-emerald-neon shadow-[0_0_15px_rgba(16,255,159,0.3)]">
           <Radio className="w-3 h-3 animate-pulse" /> LIVE CRICKET
         </span>
-        <h1 className="mt-4 text-5xl md:text-6xl font-black tracking-tight leading-tight">
+        <h1 className="mt-4 text-4xl md:text-6xl font-black tracking-tight leading-tight">
           Every Ball. <span className="bg-clip-text text-transparent bg-grad-batting">Every Run.</span><br />Live.
         </h1>
-        <p className="mt-4 text-[#8892b0] max-w-xl text-lg">
+        <p className="mt-4 text-[#8892b0] text-sm md:text-lg">
           Premium cricket league management & real-time scoring. Ball-by-ball accuracy, gorgeous live dashboards, professional analytics.
         </p>
-        <div className="mt-8 flex gap-4">
-          <Link href="/live" className="btn-grad bg-gradient-to-r from-emerald-neon to-cyan-400 text-black font-black shadow-[0_0_20px_rgba(16,255,159,0.4)] hover:scale-105 transition px-6 py-3">
+        <div className="mt-6 md:mt-8 flex justify-center md:justify-start gap-4">
+          <Link href="/live" className="btn-grad bg-gradient-to-r from-emerald-neon to-cyan-400 text-black font-black shadow-[0_0_20px_rgba(16,255,159,0.4)] hover:scale-105 transition px-6 py-3 rounded-lg">
             Watch Live
           </Link>
-          <Link href="/scorer" className="btn-grad bg-gradient-to-r from-royal to-magenta font-black shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 transition px-6 py-3">
+          <Link href="/scorer" className="btn-grad bg-gradient-to-r from-royal to-magenta font-black shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:scale-105 transition px-6 py-3 rounded-lg text-white">
             Open Scorer
           </Link>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE IMAGE */}
+      <div className="relative z-10 w-full md:w-1/2 flex items-center justify-center">
+        <div className="absolute w-[280px] h-[280px] md:w-[450px] md:h-[450px] border border-emerald-neon/20 rounded-full animate-radar pointer-events-none" />
+        <div className="absolute w-[220px] h-[220px] md:w-[350px] md:h-[350px] border border-dashed border-magenta/30 rounded-full animate-radar pointer-events-none" style={{ animationDirection: 'reverse' }} />
+        <div className="absolute w-40 h-40 md:w-80 md:h-80 bg-emerald-neon/20 rounded-full blur-[80px] md:blur-[100px] animate-pulse pointer-events-none" />
+
+        <div className="relative z-20 w-[240px] h-[240px] md:w-[350px] md:h-[350px] lg:w-[420px] lg:h-[420px] p-3 md:p-4 rounded-[2.5rem] bg-white/5 backdrop-blur-md border border-white/10 animate-float-ball group hover:scale-105 transition-transform duration-500">
+          <div className="w-full h-full overflow-hidden rounded-[2rem] relative flex items-center justify-center bg-black/20">
+            <img 
+              src="/images/hero-collage.png" 
+              alt="Premium Cricket Gear" 
+              className="w-full h-full object-cover object-top scale-[1.15] drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] relative z-10"
+            />
+            <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+            </div>
+          </div>
+          <div className="absolute -top-4 -right-4 w-16 h-16 bg-magenta rounded-full blur-xl opacity-40 animate-pulse pointer-events-none" />
+          <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-emerald-neon rounded-full blur-xl opacity-30 animate-pulse pointer-events-none" />
         </div>
       </div>
     </section>
@@ -88,12 +64,12 @@ function Hero() {
 }
 
 // ============================================================
-// DYNAMIC LIVE MATCHES
+// DYNAMIC LIVE MATCHES (Data Fetch Wrapper)
 // ============================================================
-async function LiveMatches() {
-  await connection();
+async function LiveMatchesWrapper() {
+  "use cache";
+  await connectDB();
   try {
-    await connectDB();
     const matches = await Match.find({ status: "live" })
       .populate("teamA", "name shortName primaryColor logo")
       .populate("teamB", "name shortName primaryColor logo")
@@ -231,10 +207,10 @@ function LiveMatchCard({ match }) {
 }
 
 // ============================================================
-// DYNAMIC STATS
+// DYNAMIC STATS (Data Fetch Wrapper)
 // ============================================================
-async function DynamicStats() {
-  await connection();
+async function DynamicStatsWrapper() {
+  "use cache";
   await connectDB();
 
   const [tournamentCount, teamCount, playerCount, deliveryCount] = await Promise.all([
@@ -274,6 +250,9 @@ function StatsSkeleton() {
   );
 }
 
+// ============================================================
+// MAIN PAGE COMPONENT
+// ============================================================
 export default function Home() {
   return (
     <div className="space-y-10 animate-slide-up">
@@ -284,13 +263,15 @@ export default function Home() {
           <span className="live-dot" />
           <h2 className="text-2xl font-black">Live Matches</h2>
         </div>
+        {/* Live Matches ke Suspense diye wrap kora hoyeche */}
         <Suspense fallback={<div className="panel p-8 h-64 animate-pulse bg-white/5" />}>
-          <LiveMatches />
+          <LiveMatchesWrapper />
         </Suspense>
       </section>
 
+      {/* Stats ke Suspense diye wrap kora hoyeche */}
       <Suspense fallback={<StatsSkeleton />}>
-        <DynamicStats />
+        <DynamicStatsWrapper />
       </Suspense>
     </div>
   );

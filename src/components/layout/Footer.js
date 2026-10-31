@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { Mail, MapPin, Phone, Shield, Zap } from "lucide-react";
+import { useState } from "react";
+import { Mail, MapPin, Phone, Shield, Zap, Loader2, CheckCircle2 } from "lucide-react";
 
 const FacebookIcon = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -29,29 +32,56 @@ const YoutubeIcon = (props) => (
 );
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | loading | success
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+    setStatus("loading");
+
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setStatus("success");
+        setEmail("");
+        setTimeout(() => setStatus("idle"), 3000);
+      } else {
+        setStatus("idle");
+      }
+    } catch (err) {
+      setStatus("idle");
+    }
+  };
+
   return (
     <footer className="relative mt-20 border-t border-white/10 bg-[#070b19]">
-      {/* Neon Top Gradient Border */}
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-neon to-transparent opacity-50" />
 
-      <div className="max-w-7xl mx-auto px-4 pt-10 md:pt-16 pb-6 md:pb-8">
-        {/* ⚡ মোবাইলে গ্রিড gap ছোট করা হয়েছে */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 mb-10 md:mb-16">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-10 md:pt-16 pb-6 md:pb-8">
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 mb-10 md:mb-16">
           
-          {/* Column 1: Brand & Socials (মোবাইলে ২ কলাম জুড়ে থাকবে) */}
-          <div className="col-span-2 lg:col-span-1 space-y-4 md:space-y-5">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-1 space-y-4 text-center md:text-left flex flex-col items-center md:items-start mb-4 md:mb-0">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-grad-live grid place-items-center font-black text-emerald-neon shadow-glow text-lg md:text-xl">
                 B
               </div>
-              <span className="font-black text-xl md:text-2xl tracking-tight">
+              <span className="font-black text-xl md:text-2xl tracking-tight text-white">
                 BPL <span className="text-emerald-neon">LIVE</span>
               </span>
             </Link>
-            <p className="text-[#8892b0] text-xs md:text-sm leading-relaxed">
+            <p className="text-[#8892b0] text-xs md:text-sm leading-relaxed max-w-xs md:max-w-none">
               The ultimate premium cricket league management and real-time scoring platform. Experience ball-by-ball action like never before.
             </p>
-            <div className="flex gap-2 md:gap-3 pt-1 md:pt-2">
+            <div className="flex gap-2 md:gap-3 justify-center md:justify-start">
               {[FacebookIcon, TwitterIcon, InstagramIcon, YoutubeIcon].map((Icon, i) => (
                 <a key={i} href="#" className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#8892b0] hover:text-emerald-neon hover:border-emerald-neon hover:shadow-glow transition-all duration-300">
                   <Icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -60,12 +90,12 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 2: Quick Links */}
-          <div>
-            <h3 className="text-white font-bold text-sm md:text-lg mb-3 md:mb-5 flex items-center gap-1.5 md:gap-2">
-              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-gold" /> Quick Links
+          {/* Quick Links */}
+          <div className="col-span-1 text-center md:text-left">
+            <h3 className="text-white font-bold text-xs md:text-lg mb-3 md:mb-5 flex items-center justify-center md:justify-start gap-1">
+              <Zap className="w-3 h-3 md:w-4 md:h-4 text-gold" /> Quick Links
             </h3>
-            <ul className="space-y-2 md:space-y-3 text-xs md:text-sm text-[#8892b0]">
+            <ul className="space-y-2 md:space-y-3 text-[11px] md:text-sm text-[#8892b0]">
               {[
                 { label: "Live Matches", href: "/live" },
                 { label: "Match Schedule", href: "/matches" },
@@ -74,7 +104,7 @@ export default function Footer() {
                 { label: "Player Profiles", href: "/players" },
               ].map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="hover:text-cyan-400 hover:translate-x-1 inline-block transition-transform duration-200">
+                  <Link href={link.href} className="hover:text-cyan-400 inline-block transition-transform duration-200">
                     {link.label}
                   </Link>
                 </li>
@@ -82,21 +112,20 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Tournament */}
-          <div>
-            <h3 className="text-white font-bold text-sm md:text-lg mb-3 md:mb-5 flex items-center gap-1.5 md:gap-2">
-              <Shield className="w-3.5 h-3.5 md:w-4 md:h-4 text-royal" /> Tournament
+          {/* Tournament */}
+          <div className="col-span-1 text-center md:text-left">
+            <h3 className="text-white font-bold text-xs md:text-lg mb-3 md:mb-5 flex items-center justify-center md:justify-start gap-1">
+              <Shield className="w-3 h-3 md:w-4 md:h-4 text-royal" /> Tournament
             </h3>
-            <ul className="space-y-2 md:space-y-3 text-xs md:text-sm text-[#8892b0]">
+            <ul className="space-y-2 md:space-y-3 text-[11px] md:text-sm text-[#8892b0]">
               {[
-                { label: "Orange Cap", href: "/statistics" },
-                { label: "Purple Cap", href: "/statistics" },
-                { label: "Tournament Stats", href: "/statistics" },
-                { label: "Match Archives", href: "/matches" },
-                { label: "Admin Dashboard", href: "/admin" },
+                { label: "Orange Cap", href: "/stats/orange-cap" },
+                { label: "Purple Cap", href: "/stats/purple-cap" },
+                { label: "Tournament Stats", href: "/stats/tournament" },
+                { label: "Match Archives", href: "/matches/archives" },
               ].map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="hover:text-magenta hover:translate-x-1 inline-block transition-transform duration-200">
+                  <Link href={link.href} className="hover:text-magenta inline-block transition-transform duration-200">
                     {link.label}
                   </Link>
                 </li>
@@ -104,41 +133,64 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Contact & Newsletter (মোবাইলে ২ কলাম জুড়ে থাকবে) */}
-          <div className="col-span-2 lg:col-span-1">
-            <h3 className="text-white font-bold text-sm md:text-lg mb-3 md:mb-5 flex items-center gap-1.5 md:gap-2">
-              <Mail className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-neon" /> Contact Us
+          {/* Contact Us (Now takes 2 cols on mobile) */}
+          <div className="col-span-2 md:col-span-1 text-center md:text-left mt-4 md:mt-0">
+            <h3 className="text-white font-bold text-xs md:text-lg mb-3 md:mb-5 flex items-center justify-center md:justify-start gap-1">
+              <Mail className="w-3 h-3 md:w-4 md:h-4 text-emerald-neon" /> Contact Us
             </h3>
-            <ul className="space-y-2 md:space-y-3 text-xs md:text-sm text-[#8892b0] mb-4 md:mb-6">
-              <li className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 mt-0.5 text-crimson shrink-0" />
-                <span>Sher-e-Bangla National Stadium, Mirpur, Dhaka</span>
+            <ul className="space-y-2 md:space-y-3 text-[11px] md:text-sm text-[#8892b0] mb-4 md:mb-6 flex flex-col items-center md:items-start">
+              <li className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 text-center md:text-left">
+                <MapPin className="w-3 h-3 md:w-4 md:h-4 text-crimson shrink-0 hidden md:block" />
+                <span>Mirpur, Dhaka</span>
               </li>
-              <li className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 md:w-4 md:h-4 text-electric shrink-0" />
+              <li className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-1">
+                <Phone className="w-3 h-3 md:w-4 md:h-4 text-electric shrink-0 hidden md:block" />
                 <span>+880 1234 567890</span>
               </li>
-              <li className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 md:w-4 md:h-4 text-gold shrink-0" />
-                <span>support@bpllive.com</span>
+              <li className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-1">
+                <Mail className="w-3 h-3 md:w-4 md:h-4 text-gold shrink-0 hidden md:block" />
+                <span className="truncate max-w-[120px] md:max-w-none">support@bpllive.com</span>
               </li>
             </ul>
             
-            <div className="flex gap-2">
-              <input 
-                type="email" 
-                placeholder="Email address" 
-                className="bg-white/5 border border-white/10 rounded-l-xl px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-white w-full outline-none focus:border-emerald-neon transition"
-              />
-              <button className="bg-emerald-neon text-black font-bold px-3 md:px-4 py-1.5 md:py-2 rounded-r-xl hover:bg-cyan-400 transition-colors text-xs md:text-sm">
-                Join
-              </button>
+            {/* ⚡ NEW PREMIUM NEWSLETTER DESIGN ⚡ */}
+            <div className="w-full max-w-[280px] mx-auto md:mx-0 mt-2">
+              <form 
+                onSubmit={handleSubscribe} 
+                className="flex flex-col sm:flex-row p-1.5 bg-white/5 border border-white/10 rounded-2xl shadow-[0_0_20px_rgba(16,255,159,0.05)] focus-within:border-emerald-neon/50 focus-within:shadow-[0_0_20px_rgba(16,255,159,0.15)] transition-all"
+              >
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address" 
+                  required
+                  disabled={status === "loading" || status === "success"}
+                  className="bg-transparent px-3 py-2.5 text-xs md:text-sm text-white w-full outline-none placeholder:text-[#8892b0]"
+                />
+                <button 
+                  type="submit"
+                  disabled={status === "loading" || status === "success"}
+                  className={`${
+                    status === "success" ? "bg-green-500" : "bg-emerald-neon hover:bg-cyan-400"
+                  } text-black font-black px-4 py-2.5 mt-1.5 sm:mt-0 rounded-xl transition-all duration-300 text-xs md:text-sm shrink-0 flex items-center justify-center w-full sm:w-auto min-w-[80px]`}
+                >
+                  {status === "loading" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : status === "success" ? (
+                    <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Done</span>
+                  ) : (
+                    "Join"
+                  )}
+                </button>
+              </form>
             </div>
+
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-4 md:pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 text-[10px] md:text-xs text-[#8892b0]">
+        <div className="pt-4 md:pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] md:text-xs text-[#8892b0] text-center md:text-left">
           <p>© 2026 BPL LIVE. All rights reserved.</p>
           <div className="flex gap-4 md:gap-6">
             <Link href="#" className="hover:text-white transition">Privacy Policy</Link>
